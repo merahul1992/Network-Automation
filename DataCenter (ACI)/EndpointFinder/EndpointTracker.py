@@ -17,12 +17,14 @@ def get_endpoint_by_ip(endpoint, session, apic) -> tuple:
     json_to_dict = None
     uri_xml = f"https://{apic}/api/node/class/fvCEp.xml?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
               f"eq(fvIp.addr,\"{endpoint}\""
+    uri_json2 = f"https://{apic}/api/node/class/epmIpToPathEp.json?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
+              f"eq(epmIpToPathEp.ip,\"{endpoint}\""
     uri_json = f"https://{apic}/api/node/class/fvCEp.json?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
                f"eq(fvIp.addr,\"{endpoint}\""
 
     # Makes web request
-    xml_reponse = session.get(uri_xml, verify=False)
-    json_response = session.get(uri_json, verify=False)
+    #xml_reponse = session.get(uri_xml, verify=False)
+    json_response = session.get(uri_json2, verify=False)
 
     # Converts xml reponse string to element tree
     try:
@@ -169,4 +171,5 @@ def apic_login() -> None:
 
 if __name__ == '__main__':
     apic_login()
+
 
