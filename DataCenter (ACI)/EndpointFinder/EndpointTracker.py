@@ -10,35 +10,6 @@ import json
 warnings.filterwarnings('ignore', message='Unverified HTTPS request')
 leafs = []
 
-
-def get_endpoint_by_mac(endpoint, session, apic) -> tuple:
-    """Request endpoing data by mac using json and xml"""
-
-    root = None
-    json_to_dict = None
-    uri_xml = f"https://{apic}/api/node/class/fvCEp.xml?rsp-subtree=full&rsp-subtree-class=fvCEp,fvRsCEpToPathEp,fvIp," \
-              f"fvRsHyper,fvRsToNic,fvRsToVm&query-target-filter=eq(fvCEp.mac,\"{endpoint}\""
-    uri_json = f"https://{apic}/api/node/class/fvCEp.json?rsp-subtree=full&rsp-subtree-class=fvCEp,fvRsCEpToPathEp,fvIp," \
-               f"fvRsHyper,fvRsToNic,fvRsToVm&query-target-filter=eq(fvCEp.mac,\"{endpoint}\""
-
-    # Makes web request
-    xml_reponse = session.get(uri_xml, verify=False)
-    json_response = session.get(uri_json, verify=False)
-
-    # Converts xml reponse string to element tree
-    try:
-        root = ET.fromstring(xml_reponse.text)
-    except ET.ParseError:
-        pass
-    # Converts json response to dictionary
-    try:
-        json_to_dict = json.loads(json_response.text)
-    except json.JSONDecodeError:
-        pass
-
-    return root, json_to_dict
-
-
 def get_endpoint_by_ip(endpoint, session, apic) -> tuple:
     """Request endpoing data by ip using json and xml"""
 
@@ -122,48 +93,6 @@ def find_ip_endpoints(endpoint, session, apic) -> None:
     display_endpoint_data(ep_loc, encap, ep_domain, mac, paths)
 
 
-def find_mac_endpoints(endpoint, session, apic) -> None:
-    """Collect all data about the requested endpoint if mac"""
-
-    paths = []
-    encap = None
-    ep_loc = None
-    ep_domain = None
-    ip = None
-
-    # Request endpoint data and iterate through elements/atrributes in tree
-    root = get_endpoint_by_mac(endpoint, session, apic)
-    for fvCEp in root[0].iter("fvCEp"):
-        ip = fvCEp.get("ip")
-        encap = fvCEp.get("encap")
-        ep_loc = fvCEp.get("dn")
-        ep_domain = fvCEp.get("lcC")
-
-    # Request endpoint data and iterate through elements/atrributes collecting path data
-    for fvRsCEpToPathEp in root[0].iter("fvRsCEpToPathEp"):
-        path = parse_path_group(fvRsCEpToPathEp)
-        if path is not None:
-            paths.append(path)
-        path = parse_policy_group(fvRsCEpToPathEp)
-        if path is not None:
-            paths.append(path)
-    try:
-        # Using json dictionary, collecting the nodes report the enpoint.
-        for node in root[1].get('imdata', {})[0].get('fvCEp', {}).get('children', {})[0].get('fvRsHyper', {}).get('children', {}):
-            reporting_node = node.get('fvReportingNode', {}).get('attributes', {}).get('id', {})
-            leafs.append(reporting_node)
-        for node in root[1].get('imdata', {})[0].get('fvCEp', {}).get('children', {})[0].get('fvRsToVm', {}).get('children', {}):
-            reporting_node = node.get('fvReportingNode', {}).get('attributes', {}).get("id", {})
-            leafs.append(reporting_node)
-        for node in root[1].get('imdata', {})[0].get('fvCEp', {}).get('children', {})[0].get('fvRsCEpToPathEp', {}).get('children', {}):
-            reporting_node = node.get('fvReportingNode', {}).get('attributes', {}).get('id', {})
-            leafs.append(reporting_node)
-    except IndexError:
-        pass
-
-    display_endpoint_data(ep_loc, encap, ep_domain, ip, paths)
-
-
 def display_endpoint_data(ep_loc, encap, ep_domain, reverse, paths) -> None:
     """Presents the user with data about the requested endpoint"""
 
@@ -206,7 +135,7 @@ def input_endpoint(session, apic) -> None:
         ipaddress.IPv4Address(endpoint)
         find_ip_endpoints(endpoint, session, apic)
     except ipaddress.AddressValueError:
-        find_mac_endpoints(endpoint, session, apic)
+        print(f"Enter correct IP")
 
 
 def apic_login() -> None:
@@ -240,3 +169,4 @@ def apic_login() -> None:
 
 if __name__ == '__main__':
     apic_login()
+
