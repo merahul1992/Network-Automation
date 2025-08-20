@@ -25,7 +25,7 @@ def get_endpoint_by_ip(endpoint, session, apic) -> tuple:
                f"eq(fvIp.addr,\"{endpoint}\""
 
     # Makes web request
-    #xml_reponse = session.get(uri_xml, verify=False)
+    xml_reponse = session.get(uri_xml2, verify=False)
     json_response = session.get(uri_json2, verify=False)
 
     # Converts xml reponse string to element tree
@@ -173,6 +173,7 @@ def apic_login() -> None:
 
 if __name__ == '__main__':
     apic_login()
+
 
 
 
