@@ -17,6 +17,8 @@ def get_endpoint_by_ip(endpoint, session, apic) -> tuple:
     json_to_dict = None
     uri_xml = f"https://{apic}/api/node/class/fvCEp.xml?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
               f"eq(fvIp.addr,\"{endpoint}\""
+    uri_xml2 = f"https://{apic}/api/node/class/epmIpToPathEp.xml?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
+              f"eq(epmIpToPathEp.ip,\"{endpoint}\""
     uri_json2 = f"https://{apic}/api/node/class/epmIpToPathEp.json?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
               f"eq(epmIpToPathEp.ip,\"{endpoint}\""
     uri_json = f"https://{apic}/api/node/class/fvCEp.json?rsp-subtree=full&rsp-subtree-include=required&rsp-subtree-filter=" \
@@ -171,5 +173,6 @@ def apic_login() -> None:
 
 if __name__ == '__main__':
     apic_login()
+
 
 
